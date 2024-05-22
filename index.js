@@ -1,6 +1,6 @@
 //fix thunderclient http://localhost:3000/personagem/5
 const express = require('express')
-const { MongoClient } = require('mongodb')
+const { MongoClient, ObjectId } = require('mongodb')
 const app = express()
 const port = 3000
 
@@ -28,17 +28,21 @@ async function main() {
 
   //read all get (personagem)
 
-  app.get('/personagem', function (req, res) {
-    res.send(lista)
+  app.get('/personagem', async function (req, res) {
+    //Acessamos a lista de itens no colection no mongodb
+    const itens = await collection.find().toArray()
+
+    //enviamos a lista de itens com resultado
+    res.send(itens)
   })
 
   //Endpoint Read by id [GET] /personagem/id
 
-  app.get(`/personagem/:id`, function (req, res) {
+  app.get(`/personagem/:id`, async function (req, res) {
     const id = req.params.id
 
-    //Acesso item na lista usando id -1
-    const item = lista[id - 1]
+    //Acesso item na collection usando id -1
+    const item = await collection.findOne({_id: new ObjectId(id)})
 
     //Checamos se o item existe
     if (!item) {
