@@ -32,7 +32,7 @@ async function main() {
     //Acessamos a lista de itens no colection no mongodb
     const itens = await collection.find().toArray()
 
-    //enviamos a lista de itens com resultado http://localhost:3000/personagem/664e520ea2139b571747afc7
+    //enviamos a lista de itens com resultado http://localhost:3000/personagem/66508874a2bba6eadd459e4e
 
     res.send(itens)
   })
@@ -77,29 +77,34 @@ async function main() {
   })
 
   //endpoint update[put] /personagem/:id
-  app.put('/personagem/:id', function (req, res) {
+  app.put('/personagem/:id', async function (req, res) {
     //acessa o id dos parametros de rota
     const id = req.params.id
+    
     //Checamos se o item do id -1 esta na lista exisbe mensagem caso nao esteja
-    if (!lista[id - 1]) {
-      return res.status(404).send('Item não encontrado')
-    }
+    // if (!lista[id - 1]) {
+    //   return res.status(404).send('Item não encontrado')
+    // }
+    
     //Acessamos o body da requisicao
-    const body = req.body
-    //acessamos a propridade nome do body
-    const novoItem = body.nome
-    //atualizamos na lista o novoItem pelo id - 1
-    lista[id - 1] = novoItem
+    const NovoItem = req.body
 
-    if (!novoItem) {
+    //Checar se o nome esta presente no body
+    if (!NovoItem || !NovoItem.nome) {
       return res.status(400).send(`Corpo da requisicao deve estar presente no body`)
     }
-    //Checar se o novo item esta presente ou nao
-    if (lista.includes(novoItem)) {
-      return res.status(409).send(`Esse item ja existe na lista`)
-    }
 
-    res.status(201).send('Item atualizado com sucesso: ' + id + ' - ' + novoItem)
+    //Atualizamos no collection o NovoItem pelo id
+    await collection.updateOne(
+      {_id: new ObjectId(id)},
+      {$set: NovoItem}
+    )
+    //Checar se o novo item esta presente ou nao
+    if (lista.includes(NovoItem)) {
+      return res.status(409).send(NovoItem)
+    }
+    
+    res.status(201).send(NovoItem)
   })
 
   //endpoint delete[put] /personagem/:id
