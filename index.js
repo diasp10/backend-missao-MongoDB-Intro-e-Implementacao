@@ -32,7 +32,8 @@ async function main() {
     //Acessamos a lista de itens no colection no mongodb
     const itens = await collection.find().toArray()
 
-    //enviamos a lista de itens com resultado
+    //enviamos a lista de itens com resultado http://localhost:3000/personagem/664e520ea2139b571747afc7
+
     res.send(itens)
   })
 
@@ -55,26 +56,24 @@ async function main() {
   app.use(express.json())
 
   //endpoint create [POST] /personagem
-  app.post(`/personagem`, function (req, res) {
+  app.post(`/personagem`, async function (req, res) {
 
     //acessamos o body da requisicao
-    const body = req.body
-    //Acessamos a propriedade `nome` do body
-    const novoItem = body.nome
-    console.log(body)
+    const novoItem = req.body
+    
     //Checar se o nome esta presente no body
-    if (!novoItem) {
+    if (!novoItem || !novoItem.nome) {
       return res.status(400).send(`Corpo da requisicao deve estar presente no body`)
     }
     //Checar se o novo item esta presente ou nao
-    if (lista.includes(novoItem)) {
-      return res.status(409).send(`Esse item ja existe na lista`)
-    }
+    // if (lista.includes(novoItem)) {
+    //   return res.status(409).send(`Esse item ja existe na lista`)
+    // }
 
     //Adicionamos na lista
-    lista.push(novoItem)
+    await collection.insertOne(novoItem)
 
-    res.status(201).send(`Item adicionado com sucesso: ` + novoItem)
+    res.status(201).send(novoItem)
   })
 
   //endpoint update[put] /personagem/:id
@@ -103,6 +102,7 @@ async function main() {
     res.status(201).send('Item atualizado com sucesso: ' + id + ' - ' + novoItem)
   })
 
+  //endpoint delete[put] /personagem/:id
   app.delete('/personagem/:id', function (req, res) {
     //Acessando parametros de rota
     const id = req.params.id
